@@ -1,0 +1,11 @@
+# depslib dependency file v1.0
+1465462487 source:c:\users\korla march\desktop\github\sound-identification\main.cpp
+	<iostream>
+	"include/sndfile.h"
+	"conio.h"
+
+1448200942 c:\users\korla march\desktop\github\sound-identification\include\sndfile.h
+	<stdio.h>
+	<stdint.h>
+	<sys/types.h>
+
