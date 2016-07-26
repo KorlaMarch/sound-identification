@@ -2,10 +2,10 @@ var express  = require('express');
 var session  = require('express-session');
 var morgan = require('morgan');
 var app      = express();
-var port     = 80;
-var Chart = require('chart.js');
+var port     = 8080;
 
 app.use(morgan('dev'));
+app.set('view engine', 'ejs');
 
 app.use(session({
 	secret: 'vuj44gfs2vcew7',

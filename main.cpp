@@ -3,27 +3,13 @@
 #include "conio.h"
 #include "math.h"
 #include "stdio.h"
+#include "complex"
+#include "vector"
 
 #define M_PI 3.14159265358979323846
-#define BUFFER 32768
-struct Complex{
-    double real,imag;
-    Complex(double _real = 0.0, double _imag = 0.0){
-        real = _real;
-        imag = _imag;
-    }
-    Complex& operator+=(const Complex& a){
-        this->real += a.real;
-        this->imag += a.imag;
-        return *this;
-    }
-    Complex operator-(const Complex& a){
-        Complex tmp;
-        tmp.real = this->real-a.real;
-        tmp.imag = this->imag-a.imag;
-        return tmp;
-    }
-};
+#define EPSI 0.1
+#define BUFFER (1<<16)
+typedef std::complex<double> comdouble;
 
 void printInfo(SF_INFO info){
     printf("Frames : %d\n",info.frames);
@@ -34,11 +20,10 @@ void printInfo(SF_INFO info){
     printf("Seekable : %d\n",info.seekable);
 }
 
+short input[BUFFER];
 short data[BUFFER];
-short out[BUFFER] = {1, -1, 1, -1, 1, -1};
-Complex inCom[BUFFER];
-Complex outCom[BUFFER];
-Complex outCom2[BUFFER];
+comdouble inCom[BUFFER];
+comdouble outCom[BUFFER];
 
 void mergeChannels(short* data, short* out, int datacount, int channels){
     int i,j;
@@ -51,48 +36,18 @@ void mergeChannels(short* data, short* out, int datacount, int channels){
     }
 }
 
-void dft(Complex* input, Complex* output, int N){
-    double pi2 = M_PI*2.0;
-    double a,cosA,sinA,inv=1.0/N;
-    int i,j;
-    for(i = 0; i < N; i++){
-        if(i%100==0) printf("%d/%d\n",i,N);
-        output[i].real = 0.0;
-        output[i].imag = 0.0;
-        for(j = 0; j < N; j++){
-            a = -pi2*i*j*inv;
-            cosA = cos(a);
-            sinA = sin(a);
-            output[i].real += input[j].real*cosA;
-            output[i].imag += input[j].real*sinA;
-        }
-        //printf("%.6f %.6f\n",output[i].real,output[i].imag);
-    }
-}
-
-void fft(Complex* X, int N){
-    double angle, tmp, wpr, wpi, wr, wi;
-    double pi2 = M_PI * 2.0;
-    double inv = 1.0/N;
-    Complex tc;
-    for (int n = 2; n <= N; n <<= 1){
-        int n2 = n/2;
-        angle = -pi2/n;
-        tmp=sin(0.5*angle);
-        wpr = -2.0*tmp*tmp;
-        wpi = sin(angle);
-        wr = 1.0, wi = 0.0;
-        for(int m=0; m < n2; ++m){
-            for(unsigned int i=m; i < N; i+=n){
-                int j = i+n2;
-                tc.real = wr*X[j].real - wi*X[j].imag;
-                tc.imag = wr*X[j].imag + wi*X[j].real;
-                if(j<N) X[j] = X[i] - tc;
-                X[i] += tc;
-            }
-            tmp = wr;
-            wr=wr*wpr-wi*wpi+wr;
-            wi=wi*wpr+tmp*wpi+wi;
+void fft(comdouble* in, comdouble* out, int N, int s){
+    const double pi2 = M_PI*2.0;
+    if(N==1){
+        out[0] = in[0];
+    }else{
+        fft(in,out,N/2,2*s);
+        fft(in+s,out+N/2,N/2,2*s);
+        for(int k = 0; k < N/2; k++){
+            comdouble t = out[k];
+            comdouble twfac = exp(-pi2*k/N * comdouble(0, 1) )*out[k+N/2];
+            out[k] = t+twfac;
+            out[k+N/2] = t-twfac;
         }
     }
 }
@@ -103,65 +58,55 @@ void hannWindowing(short* input, short* output, int N){
     }
 }
 
-void writeCSV(FILE* file, Complex* input, int N){
-    fprintf(file,"real,imag\n");
+void writeCSV(FILE* file, comdouble* input, int N, double scaleX){
+    fprintf(file,"%.4f\n",scaleX);
     for(int i = 0; i < N; i++){
-        fprintf(file,"%.6f,%.6f\n",input[i].real,input[i].imag);
+        fprintf(file,"%.4f\n",std::abs(input[i]) );
     }
 }
 
-bool checkFFT(Complex* input, Complex* fftout, int N){
-    dft(input,outCom2,N);
-    for(int i = 0; i < N; i++){
-        if(fftout[i].real!=outCom2[i].real||fftout[i].imag!=outCom2[i].imag){
-            printf("Error At %d (Real %.3f/%.3f , Imag %.3f/%.3f)\n",i,fftout[i].real,outCom2[i].real,fftout[i].imag,outCom2[i].imag);
-            //return false;
-        }
-    }
-    return true;
-}
-
-
-int main()
+int main(int argc, char* argv[])
 {
+    if(argc<3){
+        printf("Error Need two arg\n");
+        return -1;
+    }else printf("GET %d : %s %s\n",argc,argv[1],argv[2]);
     int readcount;
-    SF_INFO info,infoout;
-    SNDFILE* inwav = sf_open("274.wav",SFM_READ,&info);
+    SF_INFO info;
+    SNDFILE* inwav = sf_open(argv[1],SFM_READ,&info);
     FILE* csv;
-    infoout = info;
-    infoout.channels = 1;
-    //SNDFILE* outwav = sf_open("out.wav",SFM_WRITE,&infoout);
     if(!inwav){
         std::cout << "Unable to open input file\n";
         sf_perror(NULL);
         return 1;
     }
-    /*if(!outwav){
-        std::cout << "Unable to open output file\n";
-        sf_perror(NULL);
-        return 1;
-    }*/
     printInfo(info);
 
-    while((readcount = sf_read_short(inwav,data,BUFFER))){
-        mergeChannels(data,out,readcount,info.channels);
-        //sf_write_short(outwav,out,BUFFER/info.channels);
-        //readcount = 5;
-        //annWindowing(data,data,readcount);
+    //skip to the middle of sound
+    sf_seek(inwav,(info.frames-BUFFER)/2,SEEK_SET);
+
+    if((readcount = sf_read_short(inwav,input,BUFFER))){
+        mergeChannels(input,data,readcount,info.channels);
+        hannWindowing(data,data,readcount);
         for(int i = 0; i < readcount; i++){
-            outCom[i].real = inCom[i].real = out[i];
-            outCom[i].imag = inCom[i].imag = 0.0;
+            outCom[i] = comdouble( 0.0, 0.0 );
+            inCom[i] = comdouble( data[i], 0.0 );
         }
-        dft(inCom,outCom,readcount);
-        printf("DFT Finish..\n");
-        //checkFFT(inCom,outCom,readcount);
-        csv = fopen("dft.csv","w+");
-        writeCSV(csv,outCom,readcount);
+        fft(inCom,outCom,readcount,1);
+        //do inverse
+        const double inv = 1.0/readcount;
+        for(int i = 0; i < readcount; i++){
+            outCom[i] *= inv;
+        }
+        printf("FFT Finish..\n");
+
+        //scale to Hz
+        double scale = info.samplerate/(double)readcount;
+        csv = fopen(argv[2],"w+");
+        writeCSV(csv,outCom,readcount,scale);
         fclose(csv);
-        break;
     }
 
     sf_close(inwav);
-    //sf_close(outwav);
     return 0;
 }
