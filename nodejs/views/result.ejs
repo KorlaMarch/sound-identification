@@ -6,13 +6,13 @@
     <script src="js/jquery-3.1.0.min.js"></script>
   </head>
   <body>
-  	<canvas id="fftChart" width="1000px" height="600px"></canvas>
+  	<div><h3>Musical type is <%= musictype %></h3></div>
+  	<canvas id="fftChart" width="300px" height="300px"></canvas>
   	<script>
 		var ctx = $("#fftChart");
 		var fftchart = Chart.Line(ctx, {
 
 		    data: {
-		        labels: [<%= label %>],
 		        datasets: [{
 		        	label: "<%= head %>",
 		            data: <%- JSON.stringify(line) %>,
@@ -45,7 +45,11 @@
 		                ticks: {
 		                    min: 20,
 		                    max: 20000
-		                }
+		                },
+		                scaleLabel : {
+		                	display : true,
+		                	labelString : 'Frequency'
+		            	}
 		            }],
 		            yAxes: [{
 		                ticks: {
