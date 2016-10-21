@@ -16,7 +16,7 @@
 
 #define M_PI 3.14159265358979323846
 #define EPSI 0.1
-#define BUFFER (1<<16)
+#define BUFFER (1<<15)
 
 typedef std::complex<double> comdouble;
 
@@ -28,8 +28,8 @@ void fft(comdouble* in, comdouble* out, int N, int s);
 void hannWindowing(short* input, short* output, int N);
 
 // Matching Learning - KNN 
-#define VECSIZE 16384
-const int kcon = 3;
+#define VECSIZE (1<<15)
+const int kcon = 1;
 const int tysize = 3;
 const char typelist[3] = {'P','G','V'};
 std::vector<std::pair<char, std::array<double, VECSIZE> > > dlist;

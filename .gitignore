@@ -1,3 +1,10 @@
+# Result from running
+*.csv
+*.sodb
+
+# Sample Sound
+*.wav
+
 # Compiled Object files
 *.slo
 *.lo
@@ -26,12 +33,6 @@
 *.exe
 *.out
 *.app
-
-# Result from running
-*.csv
-
-# Simple Sound
-*.wav
 
 # Nodejs
 

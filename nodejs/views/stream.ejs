@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title><%= heading %></title>
+  <meta charset="UTF-8" />
+  <script>
+    window.addEventListener("load", function() {
+      var button = document.getElementById("connect");
+      var status = document.getElementById("status");
+      var output = document.getElementById("output");
+      var source;
+
+      function connect() {
+        source = new EventSource("<%= streamName %>");
+
+        source.addEventListener("message", function(event) {
+          output.innerHTML += event.data;
+        }, false);
+
+        source.addEventListener("open", function(event) {
+          button.value = "Disconnect";
+          output.innerHTML = "";
+          button.onclick = function(event) {
+            source.close();
+            button.value = "Connect";
+            button.onclick = connect;
+            status.textContent = "Connection closed!";
+          };
+          status.textContent = "Connection open!";
+        }, false);
+
+        source.addEventListener("error", function(event) {
+          source.close();
+          button.value = "Connect";
+          button.onclick = connect;
+          status.textContent = "Connection closed!";
+        }, false);
+      }
+
+      if (!!window.EventSource) {
+        button.onclick = connect;
+      } else {
+        button.style.display = "none";
+        status.textContent = "Sorry, your browser doesn't support server-sent events :( ";
+      }
+    }, false);
+  </script>
+</head>
+<body>
+  <input type="button" id="connect" value="Connect" /><br />
+  <span id="status">Connection closed!</span><br />
+  <div id="output"></div>
+</body>
+</html>

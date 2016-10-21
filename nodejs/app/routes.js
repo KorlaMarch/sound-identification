@@ -2,6 +2,90 @@
 
 var path    = require("path");
 var fs = require('fs');
+var chalk = require('chalk');
+var child_process = require('child_process');
+var ansiHTML = require('ansi-html');
+const logError = chalk.red.bold;
+const infoH = chalk.green;
+const infoC = chalk.cyan;
+const logPass = chalk.green.bold;
+const logFail = chalk.red.bold;
+const StringDecoder = require('string_decoder').StringDecoder;
+const decoder = new StringDecoder('utf8');
+
+function logstream(res, massage){
+	console.log(massage);
+	var massageA = massage.split("\n");
+	for(var i = 0; i < massageA.length; i++){
+		res.write("data: " + ansiHTML(massageA[i]) + "\n\n");
+		res.write("data: " + "<br />" + "\n\n");
+	}
+
+}
+
+function addTSList(file, mtype, res){
+	var execFile,inFile,outFile;
+
+	for(var i = 1; i <= 15; i++){
+		inFile = path.join(__dirname,"/../../sample/" + file + i + ".wav");
+		outFile = path.join(__dirname,"/../../output/" + file + i + ".csv");
+		logstream(res,"ADD " + file + i + ".wav");
+		try{
+			var stdout = child_process.execFileSync(path.join(__dirname,"/../../sound-identification.exe"), 
+				[inFile,outFile,"-a",mtype,"-ld"], [] );
+			if(Buffer.isBuffer(stdout) ){
+				stdout = decoder.write(stdout);
+			}
+			//logstream(res,stdout);
+		}catch(e){
+			logstream(res,logError("Error at " + file + i + ".wav" + " (return signal : " + e.status + ")" ) );
+			if(Buffer.isBuffer(e.stdout) ){
+				logstream(res,logError("Output : \n") + infoC(decoder.write(e.stdout) ) );
+			}else{
+				logstream(res,logError("Output : \n") + infoC(e.stdout) );
+			}
+			
+		}
+	}
+}
+
+function testList(file, mtype, res, testResult){
+	var execFile,inFile,outFile;
+
+	for(var i = 16; i <= 30; i++){
+		inFile = path.join(__dirname,"/../../sample/" + file + i + ".wav");
+		outFile = path.join(__dirname,"/../../output/" + file + i + ".csv");
+		logstream(res,"Test " + file + i + ".wav");
+		try{
+			var stdout = child_process.execFileSync(path.join(__dirname,"/../../sound-identification.exe"), 
+				[inFile,outFile,"-ld"], [] );
+			if(Buffer.isBuffer(stdout) ){
+				//encoding stdout
+				stdout = decoder.write(stdout);
+			}
+			//logstream(res,stdout);
+			stdout = stdout.split("\n");
+			var predictType = stdout[stdout.length-1];
+			testResult.simpleSize++;
+			if(mtype==predictType){
+				testResult.pass++;
+				logstream(res,logPass("Expect: " + mtype + " Get: " + predictType));
+			}else{
+				logstream(res,logFail("Expect: " + mtype + " Get: " + predictType));
+			}
+
+		}catch(e){
+			logstream(res,logError("Error at " + file + i + ".wav" + " (return signal : " + e.status + ")" ) );
+			logstream(res,"Massage : " + e);
+			if(Buffer.isBuffer(e.stdout) ){
+				logstream(res,logError("Output : \n") + infoC(decoder.write(e.stdout) ) );
+			}else{
+				logstream(res,logError("Output : \n") + infoC(e.stdout) );
+			}
+			
+		}
+	}
+}
 
 function resfile(res, outFile, fileName){
 	fs.readFile(outFile, 'utf8', function(err, contents) {
@@ -44,15 +128,15 @@ module.exports = function(app) {
 			res.render("../views/index.ejs");
 		}
 	);
+	
 	app.get('/result',
 		function(req, res){
 			
-			var execFile = require('child_process').execFile;
 			const inFile = path.join(__dirname,"/../../sample/" + req.query.file + ".wav");
 			const outFile = path.join(__dirname,"/../../output/" + req.query.file + ".csv");
 			console.log("EXEC " + inFile + " " + outFile);
-			execFile(path.join(__dirname,"/../../sound-identification.exe"), 
-				[inFile,outFile], [], 
+			child_process.execFile(path.join(__dirname,"/../../sound-identification.exe"), 
+				[inFile,outFile,"-ld","-e"], [], 
 				function(error, stdout, stderr) {
 					if(stdout) console.log("RUN\n" + stdout);
 					if(stderr) console.log("ERR\n" + stderr);
@@ -66,22 +150,75 @@ module.exports = function(app) {
 		}
 	);
 
-	app.get('/addTS',
+	app.get('/gentest',
 		function(req, res){
-			var execFile;
-			var inFile;
-			var outFile;
+			res.render("../views/stream.ejs", { "streamName" : "stream_gen", "heading" : "Generate Testset"} );
+		}
+	);
 
-			for(var i = 1; i <= 15; i++){
-				execFile = require('child_process').execFileSync;
-				inFile = path.join(__dirname,"/../../sample/" + req.query.file + i + ".wav");
-				outFile = path.join(__dirname,"/../../output/" + req.query.file + i + ".csv");
-				console.log("ADD " + inFile);
-				var stdout = execFile(path.join(__dirname,"/../../sound-identification.exe"), 
-					[inFile,outFile,"-a",req.query.mtype,"-ld"], [] );
-				console.log("OUT : \n" + stdout);
+	app.get('/stream_gen', 
+		function(req, res){
+			res.writeHead(200, {"Content-Type":"text/event-stream", "Cache-Control":"no-cache", "Connection":"keep-alive"});
+
+			logstream(res,infoH("Initiate generating sequence..."));
+
+			var tsFile = path.join(__dirname,"/../ts.bin");
+			try{
+				fs.accessSync(tsFile);
+				logstream(res,infoH("Remove old ts.bin"));
+				fs.unlinkSync(tsFile);
+			}catch(e) {
+				logstream(res,logError("No old ts.bin was found"));
 			}
-			resfile(res,outFile, req.query.file + 15);
+
+			logstream(res,infoH("Adding Piano"));
+			addTSList("Piano/piano-","P",res);
+			
+			logstream(res,infoH("Adding Guitar"));
+			addTSList("Guitar/Guitar-","G",res);
+
+			logstream(res,infoH("Adding Violin"));
+			addTSList("Violin/violin-","V",res);
+
+			logstream(res,infoH("End of generating sequence"));
+
+			res.end();
+		}
+	);
+
+	app.get('/selftest',
+		function(req, res){
+			res.render("../views/stream.ejs", { "streamName" : "stream_selftest" , "heading" : "Self testing"} );
+		}
+	);
+
+	app.get('/stream_selftest',
+		function(req, res){
+			var testResult = {simpleSize: 0, pass: 0};
+			testResult.toString = function(){
+				return logFail("All: " + testResult.simpleSize) + logPass(" Pass: " + testResult.pass) 
+				+ " Accuracy: " + (testResult.pass/testResult.simpleSize*100).toFixed(3) + "%";
+			};
+
+			res.writeHead(200, {"Content-Type":"text/event-stream", "Cache-Control":"no-cache", "Connection":"keep-alive"});
+
+			logstream(res,infoH("Initiate self-testing sequence..."));
+
+			logstream(res,infoH("Testing Piano"));
+			testList("Piano/piano-","P",res,testResult);
+			logstream(res,"Current result " + testResult.toString() );
+
+			logstream(res,infoH("Testing Guitar"));
+			testList("Guitar/Guitar-","G",res,testResult);
+			logstream(res,"Current result " + testResult.toString() );
+
+			logstream(res,infoH("Testing Violin"));
+			testList("Violin/violin-","V",res,testResult);
+			logstream(res,"Result " + testResult.toString() );
+
+			logstream(res,infoH("End of self-testing sequence"));
+
+			res.end();
 		}
 	);
 
