@@ -2,8 +2,7 @@
 *.csv
 *.sodb
 
-# Sample Sound
-*.wav
+unused_sound/
 
 # Compiled Object files
 *.slo
