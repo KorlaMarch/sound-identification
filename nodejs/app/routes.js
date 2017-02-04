@@ -32,7 +32,7 @@ function addTSList(file, mtype, res){
 		logstream(res,"ADD " + file + i + ".wav");
 		try{
 			var stdout = child_process.execFileSync(path.join(__dirname,"/../../sound-identification.exe"), 
-				[inFile,outFile,"-a",mtype,"-ld"], [] );
+				[inFile,"-f","ts.bin","-t",mtype,"-w","H"], [] );
 			if(Buffer.isBuffer(stdout) ){
 				stdout = decoder.write(stdout);
 			}
@@ -58,7 +58,7 @@ function testList(file, mtype, res, testResult){
 		logstream(res,"Test " + file + i + ".wav");
 		try{
 			var stdout = child_process.execFileSync(path.join(__dirname,"/../../sound-identification.exe"), 
-				[inFile,outFile,"-ld"], [] );
+				[inFile,"-f","ts.bin","-w","H"], [] );
 			if(Buffer.isBuffer(stdout) ){
 				//encoding stdout
 				stdout = decoder.write(stdout);

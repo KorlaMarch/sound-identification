@@ -8,15 +8,17 @@
 #include "conio.h"
 #include "math.h"
 #include "stdio.h"
+#include "stdlib.h"
 #include "complex"
 #include "vector"
 #include "array"
 #include "algorithm"
 #include "string.h"
-
-#define M_PI 3.14159265358979323846
-#define EPSI 0.1
-#define BUFFER (1<<15)
+#include "string"
+#include "constant.h"
+#include "windowing.h"
+#include "distance.h"
+#include "siconfig.h"
 
 typedef std::complex<double> comdouble;
 
@@ -25,11 +27,8 @@ bool isHann = true;
 // Signal Processing
 void mergeChannels(short* data, short* out, int datacount, int channels);
 void fft(comdouble* in, comdouble* out, int N, int s);
-void hannWindowing(short* input, short* output, int N);
 
-// Matching Learning - KNN 
-#define VECSIZE (1<<15)
-const int kcon = 1;
+// Matching Learning - KNN
 const int tysize = 3;
 const char typelist[3] = {'P','G','V'};
 std::vector<std::pair<char, std::array<double, VECSIZE> > > dlist;

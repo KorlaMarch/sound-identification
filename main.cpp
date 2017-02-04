@@ -1,5 +1,4 @@
 #include "main.h"
-#include "array"
 
 // ===================== Signal Processing =====================
 void mergeChannels(short* data, short* out, int datacount, int channels){
@@ -29,64 +28,40 @@ void fft(comdouble* in, comdouble* out, int N, int s){
     }
 }
 
-void hannWindowing(short* input, short* output, int N){
-    for(int i = 0; i < N; i++){
-        output[i] = input[i]*0.5*(1-cos(2.0*M_PI*i/(N-1)));
-    }
-}
-
 void normalize(std::array<double, VECSIZE>& a){
     double maxV = 0.0;
-    for(int i = 0; i < a.size(); i++){
+    for(unsigned int i = 0; i < a.size(); i++){
         maxV = std::max(maxV, a[i]);
     }
-    for(int i = 0; i < a.size(); i++){
+    for(unsigned int i = 0; i < a.size(); i++){
         a[i] = a[i]/maxV;
     }
 }
 
 // ===================== Matching Learning =====================
 
-double distance(std::array<double, VECSIZE>& a, std::array<double, VECSIZE>& b){
-    double sum = 0;
-
-    for(int i = 0; i < VECSIZE; i++){
-        sum += (a[i]-b[i])*(a[i]-b[i]);
-    }
-    return sqrt(sum);
-}
-
-// double distance(std::array<double, VECSIZE>& a, std::array<double, VECSIZE>& b){
-//     double sum = 0;
-
-//     for(int i = 0; i < VECSIZE; i++){
-//         sum += fabs(a[i]-b[i]);
-//     }
-//     return sum;
-// }
-
-char querry(std::array<double, VECSIZE>& ds){
+char querry(std::array<double, VECSIZE>& ds, SICONFIG& config){
     std::vector<std::pair<double, char> > closest;
     int co[256] = {};
 
     for(unsigned int i = 0; i < dlist.size(); i++){
-        closest.push_back({distance(ds,dlist[i].second),dlist[i].first});
+        closest.push_back({doDistance(ds,dlist[i].second,config.distance),dlist[i].first});
     }
     std::sort(closest.begin(),closest.end());
-    for(unsigned int i = 0; i < closest.size() && i < kcon; i++){
+    for(unsigned int i = 0; i < closest.size() && i < config.kcon; i++){
         printf("%c %.4f\n", closest[i].second,closest[i].first);
-        co[closest[i].second]++;
+        co[ (int)closest[i].second ]++;
     }
     printf("\n");
     int mx = 0;
     int mxco = 0;
     char mxty;
     for(int i = 0; i < tysize; i++){
-        if(co[ typelist[i] ] > mx){
-            mx = co[ typelist[i] ];
+        if(co[ (int)typelist[i] ] > mx){
+            mx = co[ (int)typelist[i] ];
             mxco = 1;
             mxty = typelist[i];
-        }else if(co[ typelist[i] ] == mx){
+        }else if(co[ (int)typelist[i] ] == mx){
             mxco++;
         }
     }
@@ -130,7 +105,7 @@ void loadTS(std::ifstream& file){
     dlist.clear();
     file.read((char*)&n,sizeof(unsigned int));
     //printf("load...\n");
-    for(int i = 0; i < n; i++){
+    for(unsigned int i = 0; i < n; i++){
         file.get(ty);
         dlist.push_back({ty, std::array<double, VECSIZE>() });
         //std::cout << "LOAD " << i << " : type = " << ty << "\n";
@@ -152,10 +127,16 @@ void writeCSV(FILE* file, double* input, int N, double scaleX, char type){
 
 void printInvaild(){
     printf("Invaild argument\n");
-    printf("Usage : \n");
+    printf("Usage : sound-identification [input-sound] [-d dataset] [-t type] [-e file] [-k value][-w windows] [-di distance]\n");
+    printf("\t-f dataset\t: Load dataset file as database for KNN Classification\n");
+    printf("\t-t type\t\t: Save the result into dataset\n");
+    printf("\t-e file\t\t: Export the result as .csv file\n");
+    printf("\t-k value\t\t: Set the K value for KNN Classification\n");
+    printf("\t-w windows\t: Using the input's windowing function\n");
+    printf("\t-d distance\t: Using the input's distance function\n");
 }
 
-bool processSound(char fileName[], double output[], SF_INFO& info){
+bool processSound(const char* fileName, double output[], SF_INFO& info, SICONFIG config){
     std::vector<short> input(2*BUFFER);
     std::vector<short> data(BUFFER);
     std::vector<comdouble> inCom(BUFFER),outCom(BUFFER);
@@ -186,7 +167,9 @@ bool processSound(char fileName[], double output[], SF_INFO& info){
 
     if((readcount = sf_readf_short(inwav,input.data(),BUFFER))==BUFFER){
         mergeChannels(input.data(),data.data(),readcount,info.channels);
-        if(isHann) hannWindowing(data.data(),data.data(),readcount);
+
+        doWindowing(data.data(),data.data(),readcount,config.windows);
+        
         for(int i = 0; i < readcount; i++){
             outCom[i] = comdouble( 0.0, 0.0 );
             inCom[i] = comdouble( data[i], 0.0 );
@@ -203,7 +186,7 @@ bool processSound(char fileName[], double output[], SF_INFO& info){
         }
         info.frames = readcount;
     }else{
-        printf("Error can't read to buffer size\n");
+        printf("Error : can't read to buffer size (%d/%d)\n",readcount,BUFFER);
         sf_close(inwav);
         return false;
     }
@@ -213,48 +196,89 @@ bool processSound(char fileName[], double output[], SF_INFO& info){
     return true;
 }
 
-int main(int argc, char* argv[])
-{
-    bool isAdd = false;
-    bool isExport = false;
-    char inputType = '\0';
-    std::vector <double> outvec(BUFFER);
+bool processArgs(int argc, char* argv[], SICONFIG& config){
+    //process parameter
     printf("GET arg : ");
     for(int i = 0; i < argc; i++){
-        printf(" %s ::: ", argv[i]);
+        printf(" %s :: ", argv[i]);
     }
     printf("\n");
 
-    if(argc<3){
+    if(argc<2){
         printInvaild();
-        return 1;
+        return false;
     }else{
-        for(int i = 3; i < argc; i++){
-            if(strcmp(argv[i],"-a")==0){
+        config.infile = argv[1];
+
+        for(int i = 2; i < argc; i++){
+            if(strcmp(argv[i],"-t")==0){
+                //train
                 if(i+1>=argc){
                     printInvaild();
-                    return 2;
+                    return false;
                 }else{
-                    isAdd = true;
-                    inputType = argv[i+1][0];
-                    i++;
+                    config.isTrain = true;
+                    config.inputType = argv[++i][0];
                 }
-            }else if(strcmp(argv[i],"-ld")==0){
-                //load testset
-                std::ifstream fileTS;
-                fileTS.open("ts.bin", std::ifstream::in | std::ifstream::binary);
-                if(fileTS.is_open()) loadTS(fileTS);
-                else printf("Error open Testdata file\n");
-                fileTS.close();
+
+            }else if(strcmp(argv[i],"-f")==0){
+                //load dataset
+                if(i+1>=argc){
+                    printInvaild();
+                    return false;
+                }else{
+                    config.tsfile = argv[++i];
+                }
             }else if(strcmp(argv[i],"-e")==0){
-                isExport = true;
+                //export as csv
+                if(i+1>=argc){
+                    printInvaild();
+                    return false;
+                }else{
+                    config.outfile = argv[++i];
+                }
+            }else if(strcmp(argv[i],"-k")==0){
+                //k value
+                if(i+1>=argc){
+                    printInvaild();
+                    return false;
+                }else{
+                    config.kcon = atoi(argv[++i]);
+                }
+            }else if(strcmp(argv[i],"-w")==0){
+                //use input's windowing
+                if(i+1>=argc){
+                    printInvaild();
+                    return false;
+                }else{
+                    config.windows = argv[++i][0];
+                }
+            }else if(strcmp(argv[i],"-d")==0){
+                //distance
+                if(i+1>=argc){
+                    printInvaild();
+                    return false;
+                }else{
+                    config.distance = argv[++i][0];
+                }
             }
         }
     }
+    return true;
+}
+
+int main(int argc, char* argv[])
+{
+    std::vector <double> outvec(BUFFER);
+    SICONFIG config;
+
+    if(!processArgs(argc, argv, config)){
+        return 1;
+    } 
 
     SF_INFO info;
-    if(!processSound(argv[1],outvec.data(),info)){
-        return 3;
+    if(!processSound(config.infile.c_str(),outvec.data(),info,config)){
+        return 2;
     }
 
     //convert outvec to machvec
@@ -263,31 +287,40 @@ int main(int argc, char* argv[])
         machvec[i] = outvec[i];
     }
 
-    if(isAdd){
-        train({inputType,machvec});
+    //open testdata
+    if(config.tsfile!=""){
+        std::ifstream fileTS;
+        fileTS.open(config.tsfile, std::ifstream::in | std::ifstream::binary);
+        if(fileTS.is_open()) loadTS(fileTS);
+        else printf("Error open Testdata file\n");
+        fileTS.close();
+    }
+
+    if(config.isTrain){
+        train({config.inputType,machvec});
 
         std::ofstream outTS;
-        outTS.open("ts.bin", std::ofstream::out | std::ofstream::binary);
+        outTS.open(config.tsfile, std::ofstream::out | std::ofstream::binary);
         if(outTS.is_open()) saveTS(outTS);
         else printf("Error save testdata file\n");
         outTS.close();
-        
+
     }else{
         //predict type
-        inputType = querry(machvec);
+        config.inputType = querry(machvec,config);
     }
 
-    if(isExport){
+    if(config.outfile!=""){
         //scale to Hz
         double scale = info.samplerate/(double)info.frames;
 
         //write csv
         FILE* csv;
-        csv = fopen(argv[2],"w+");
-        writeCSV(csv,outvec.data(),info.frames,scale,inputType);
+        csv = fopen(config.outfile.c_str(),"w+");
+        writeCSV(csv,outvec.data(),info.frames,scale,config.inputType);
         fclose(csv);
     }
 
-    printf("%c",inputType);
+    printf("%c",config.inputType);
     return 0;
 }

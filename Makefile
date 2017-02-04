@@ -1,7 +1,7 @@
 CC=g++
 CFLAGS=-O3 -std=c++11 -Iinclude -c -Wall
 LDFLAGS=-O2 -std=c++11
-SOURCES=main.cpp
+SOURCES=main.cpp windowing.cpp distance.cpp
 OBJECTS=$(addsuffix .o, $(basename ${SOURCES}))
 EXECUTABLE=sound-identification.exe
 DLL= lib\libsndfile-1.lib
