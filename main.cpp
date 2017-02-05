@@ -131,7 +131,7 @@ void printInvaild(){
     printf("\t-f dataset\t: Load dataset file as database for KNN Classification\n");
     printf("\t-t type\t\t: Save the result into dataset\n");
     printf("\t-e file\t\t: Export the result as .csv file\n");
-    printf("\t-k value\t\t: Set the K value for KNN Classification\n");
+    printf("\t-k value\t: Set the K value for KNN Classification\n");
     printf("\t-w windows\t: Using the input's windowing function\n");
     printf("\t-d distance\t: Using the input's distance function\n");
 }

@@ -13,17 +13,17 @@ const logFail = chalk.red.bold;
 const StringDecoder = require('string_decoder').StringDecoder;
 const decoder = new StringDecoder('utf8');
 
-function logstream(res, massage){
+function logstream(res, massage, event){
 	console.log(massage);
 	var massageA = massage.split("\n");
 	for(var i = 0; i < massageA.length; i++){
-		res.write("data: " + ansiHTML(massageA[i]) + "\n\n");
-		res.write("data: " + "<br />" + "\n\n");
+		if(event) res.write("event: " + event + "\n");
+		res.write("data: " + ansiHTML(massageA[i]) + "<br />" + "\n\n");
 	}
 
 }
 
-function addTSList(file, mtype, res){
+function addTSList(file, mtype, res, parameter){
 	var execFile,inFile,outFile;
 
 	for(var i = 1; i <= 15; i++){
@@ -32,7 +32,7 @@ function addTSList(file, mtype, res){
 		logstream(res,"ADD " + file + i + ".wav");
 		try{
 			var stdout = child_process.execFileSync(path.join(__dirname,"/../../sound-identification.exe"), 
-				[inFile,"-f","ts.bin","-t",mtype,"-w","H"], [] );
+				[inFile,"-f","ts.bin","-t",mtype].concat(parameter), [] );
 			if(Buffer.isBuffer(stdout) ){
 				stdout = decoder.write(stdout);
 			}
@@ -49,7 +49,7 @@ function addTSList(file, mtype, res){
 	}
 }
 
-function testList(file, mtype, res, testResult){
+function testList(file, mtype, res, testResult, parameter){
 	var execFile,inFile,outFile;
 
 	for(var i = 16; i <= 30; i++){
@@ -58,7 +58,7 @@ function testList(file, mtype, res, testResult){
 		logstream(res,"Test " + file + i + ".wav");
 		try{
 			var stdout = child_process.execFileSync(path.join(__dirname,"/../../sound-identification.exe"), 
-				[inFile,"-f","ts.bin","-w","H"], [] );
+				[inFile,"-f","ts.bin"].concat(parameter), [] );
 			if(Buffer.isBuffer(stdout) ){
 				//encoding stdout
 				stdout = decoder.write(stdout);
@@ -121,6 +121,56 @@ function resfile(res, outFile, fileName){
 	});
 }
 
+function streamGen(res, config){
+	logstream(res,infoH("Initiate generating sequence..."));
+
+	var tsFile = path.join(__dirname,"/../ts.bin");
+	try{
+		fs.accessSync(tsFile);
+		logstream(res,infoH("Remove old ts.bin"));
+		fs.unlinkSync(tsFile);
+	}catch(e) {
+		logstream(res,logError("No old ts.bin was found"));
+	}
+
+	logstream(res,infoH("Adding Piano"));
+	addTSList("Piano/piano-","P",res,config);
+	
+	logstream(res,infoH("Adding Guitar"));
+	addTSList("Guitar/Guitar-","G",res,config);
+
+	logstream(res,infoH("Adding Violin"));
+	addTSList("Violin/violin-","V",res,config);
+
+	logstream(res,infoH("End of generating sequence"));
+}
+
+function streamTest(res, config){
+	var testResult = {simpleSize: 0, pass: 0};
+	testResult.toString = function(){
+		return logFail("All: " + testResult.simpleSize) + logPass(" Pass: " + testResult.pass) 
+		+ " Accuracy: " + (testResult.pass/testResult.simpleSize*100).toFixed(3) + "%";
+	};
+
+	logstream(res,infoH("Initiate self-testing sequence..."));
+
+	logstream(res,infoH("Testing Piano"));
+	testList("Piano/piano-","P",res,testResult,config);
+	logstream(res,"Current result " + testResult.toString() );
+
+	logstream(res,infoH("Testing Guitar"));
+	testList("Guitar/Guitar-","G",res,testResult,config);
+	logstream(res,"Current result " + testResult.toString() );
+
+	logstream(res,infoH("Testing Violin"));
+	testList("Violin/violin-","V",res,testResult,config);
+	logstream(res,"Result " + testResult.toString() );
+
+	logstream(res,infoH("End of self-testing sequence"));
+
+	return testResult;
+}
+
 module.exports = function(app) {
 	app.get('/',
 		function(req, res){
@@ -159,29 +209,7 @@ module.exports = function(app) {
 	app.get('/stream_gen', 
 		function(req, res){
 			res.writeHead(200, {"Content-Type":"text/event-stream", "Cache-Control":"no-cache", "Connection":"keep-alive"});
-
-			logstream(res,infoH("Initiate generating sequence..."));
-
-			var tsFile = path.join(__dirname,"/../ts.bin");
-			try{
-				fs.accessSync(tsFile);
-				logstream(res,infoH("Remove old ts.bin"));
-				fs.unlinkSync(tsFile);
-			}catch(e) {
-				logstream(res,logError("No old ts.bin was found"));
-			}
-
-			logstream(res,infoH("Adding Piano"));
-			addTSList("Piano/piano-","P",res);
-			
-			logstream(res,infoH("Adding Guitar"));
-			addTSList("Guitar/Guitar-","G",res);
-
-			logstream(res,infoH("Adding Violin"));
-			addTSList("Violin/violin-","V",res);
-
-			logstream(res,infoH("End of generating sequence"));
-
+			streamGen(res);
 			res.end();
 		}
 	);
@@ -194,29 +222,44 @@ module.exports = function(app) {
 
 	app.get('/stream_selftest',
 		function(req, res){
-			var testResult = {simpleSize: 0, pass: 0};
-			testResult.toString = function(){
-				return logFail("All: " + testResult.simpleSize) + logPass(" Pass: " + testResult.pass) 
-				+ " Accuracy: " + (testResult.pass/testResult.simpleSize*100).toFixed(3) + "%";
-			};
 
 			res.writeHead(200, {"Content-Type":"text/event-stream", "Cache-Control":"no-cache", "Connection":"keep-alive"});
 
-			logstream(res,infoH("Initiate self-testing sequence..."));
+			streamTest(res);
 
-			logstream(res,infoH("Testing Piano"));
-			testList("Piano/piano-","P",res,testResult);
-			logstream(res,"Current result " + testResult.toString() );
+			res.end();
+		}
+	);
 
-			logstream(res,infoH("Testing Guitar"));
-			testList("Guitar/Guitar-","G",res,testResult);
-			logstream(res,"Current result " + testResult.toString() );
+	app.get('/fulltest',
+		function(req, res){
+			res.render("../views/streamFull.ejs", { "streamName" : "stream_fulltest" , "heading" : "Full testing"} );
+		}
+	);
 
-			logstream(res,infoH("Testing Violin"));
-			testList("Violin/violin-","V",res,testResult);
-			logstream(res,"Result " + testResult.toString() );
+	app.get('/stream_fulltest',
+		function(req, res){
+			var testResult = {simpleSize: 0, pass: 0};
+			var windows = ['R','T','H','M','B','F'];
+			var distance = ['E','M'];
+			var kcon = [1,2,3,4,5];
 
-			logstream(res,infoH("End of self-testing sequence"));
+			res.writeHead(200, {"Content-Type":"text/event-stream", "Cache-Control":"no-cache", "Connection":"keep-alive"});
+
+			for(var i = 0; i < windows.length; i++){
+				streamGen(res,["-w",windows[i]]);
+				for(var j = 0; j < distance.length; j++){
+					for(var k = 0; k < kcon.length; k++){
+						var para = ["-w",windows[i],"-d",distance[j],"-k",kcon[k].toString()];
+						var result = streamTest(res,para);
+
+						logstream(res,"Result of windows: " + logPass(windows[i]) + 
+							" distance: " + logPass(distance[j]) +
+							" kcon: " + logPass(kcon[k].toString()),"result");
+						logstream(res,result.toString(),"result");
+					}
+				}
+			}
 
 			res.end();
 		}
