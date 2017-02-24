@@ -186,7 +186,7 @@ module.exports = function(app) {
 			const outFile = path.join(__dirname,"/../../output/" + req.query.file + ".csv");
 			console.log("EXEC " + inFile + " " + outFile);
 			child_process.execFile(path.join(__dirname,"/../../sound-identification.exe"), 
-				[inFile,outFile,"-ld","-e"], [], 
+				[inFile,"-f","ts.bin","-e",outFile], [], 
 				function(error, stdout, stderr) {
 					if(stdout) console.log("RUN\n" + stdout);
 					if(stderr) console.log("ERR\n" + stderr);

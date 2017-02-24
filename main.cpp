@@ -28,16 +28,6 @@ void fft(comdouble* in, comdouble* out, int N, int s){
     }
 }
 
-void normalize(std::array<double, VECSIZE>& a){
-    double maxV = 0.0;
-    for(unsigned int i = 0; i < a.size(); i++){
-        maxV = std::max(maxV, a[i]);
-    }
-    for(unsigned int i = 0; i < a.size(); i++){
-        a[i] = a[i]/maxV;
-    }
-}
-
 // ===================== Matching Learning =====================
 
 char querry(std::array<double, VECSIZE>& ds, SICONFIG& config){
@@ -169,10 +159,15 @@ bool processSound(const char* fileName, double output[], SF_INFO& info, SICONFIG
         mergeChannels(input.data(),data.data(),readcount,info.channels);
 
         doWindowing(data.data(),data.data(),readcount,config.windows);
-        
+
+        double maxV = 0.0;
+        for(int i = 0; i < readcount; i++){
+             maxV = std::max(maxV,(double)data[i]);
+        }
+
         for(int i = 0; i < readcount; i++){
             outCom[i] = comdouble( 0.0, 0.0 );
-            inCom[i] = comdouble( data[i], 0.0 );
+            inCom[i] = comdouble( data[i]/maxV, 0.0 );
         }
         fft(inCom.data(),outCom.data(),readcount,1);
         //do inverse
