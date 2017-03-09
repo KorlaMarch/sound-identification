@@ -117,13 +117,17 @@ void writeCSV(FILE* file, double* input, int N, double scaleX, char type){
 
 void printInvaild(){
     printf("Invaild argument\n");
-    printf("Usage : sound-identification [input-sound] [-d dataset] [-t type] [-e file] [-k value][-w windows] [-di distance]\n");
+    printf("Usage : sound-identification [input-sound] [-f dataset] [-t type] [-e file]");
+    printf(" [-k value] [-w windows] [-d distance] [-nb] [-na]\n");
     printf("\t-f dataset\t: Load dataset file as database for KNN Classification\n");
-    printf("\t-t type\t\t: Save the result into dataset\n");
+    printf("\t-t type\t\t: Train the program\n");
     printf("\t-e file\t\t: Export the result as .csv file\n");
     printf("\t-k value\t: Set the K value for KNN Classification\n");
     printf("\t-w windows\t: Using the input's windowing function\n");
     printf("\t-d distance\t: Using the input's distance function\n");
+    printf("\t-nb\t\t: Normalization before FFT\n");
+    printf("\t-na\t\t: Normalization after FFT\n");
+
 }
 
 bool processSound(const char* fileName, double output[], SF_INFO& info, SICONFIG config){
@@ -161,24 +165,40 @@ bool processSound(const char* fileName, double output[], SF_INFO& info, SICONFIG
         doWindowing(data.data(),data.data(),readcount,config.windows);
 
         double maxV = 0.0;
-        for(int i = 0; i < readcount; i++){
-             maxV = std::max(maxV,(double)data[i]);
-        }
+        if(config.normalBefore){
+            for(int i = 0; i < readcount; i++){
+                 maxV = std::max(maxV,(double)data[i]);
+            }
 
-        for(int i = 0; i < readcount; i++){
-            outCom[i] = comdouble( 0.0, 0.0 );
-            inCom[i] = comdouble( data[i]/maxV, 0.0 );
+            for(int i = 0; i < readcount; i++){
+                outCom[i] = comdouble( 0.0, 0.0 );
+                inCom[i] = comdouble( data[i]/maxV, 0.0 );
+            }
+        }else{
+            for(int i = 0; i < readcount; i++){
+                outCom[i] = comdouble( 0.0, 0.0 );
+                inCom[i] = comdouble( (double)data[i], 0.0 );
+            }
         }
         fft(inCom.data(),outCom.data(),readcount,1);
         //do inverse
-        const double inv = 1.0/readcount;
-        for(int i = 0; i < readcount; i++){
-            outCom[i] *= inv;
-        }
+        // const double inv = 1.0/readcount;
+        // for(int i = 0; i < readcount; i++){
+        //     outCom[i] *= inv;
+        // }
         printf("FFT Finish.. (readcount = %d)\n",readcount);
+        maxV = 0.0;
         for(int i = 0; i < readcount; i++){
             output[i] = std::abs(outCom[i]);
+            maxV = std::max(maxV,output[i]);
         }
+
+        if(config.normalAfter){
+            for(int i = 0; i < readcount; i++){
+                output[i] /= maxV;
+            }
+        }
+
         info.frames = readcount;
     }else{
         printf("Error : can't read to buffer size (%d/%d)\n",readcount,BUFFER);
@@ -256,6 +276,10 @@ bool processArgs(int argc, char* argv[], SICONFIG& config){
                 }else{
                     config.distance = argv[++i][0];
                 }
+            }else if(strcmp(argv[i],"-nb")==0){
+                config.normalBefore = true;
+            }else if(strcmp(argv[i],"-na")==0){
+                config.normalAfter = true;
             }
         }
     }

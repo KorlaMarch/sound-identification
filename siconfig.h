@@ -12,6 +12,8 @@ struct SICONFIG{
 	char inputType;
 
 	bool isTrain;
+	bool normalBefore;
+	bool normalAfter;
 	unsigned int kcon;
 
 	SICONFIG(){
@@ -22,6 +24,8 @@ struct SICONFIG{
 		distance = '\0';
 		inputType = '\0';
 		isTrain = false;
+		normalBefore = false;
+		normalAfter = false;
 		kcon = 1;
 	}
 };
