@@ -167,7 +167,7 @@ bool processSound(const char* fileName, double output[], SF_INFO& info, SICONFIG
         double maxV = 0.0;
         if(config.normalBefore){
             for(int i = 0; i < readcount; i++){
-                 maxV = std::max(maxV,(double)data[i]);
+                 maxV = std::max(maxV,(double)abs(data[i]));
             }
 
             for(int i = 0; i < readcount; i++){

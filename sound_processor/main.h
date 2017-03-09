@@ -22,8 +22,6 @@
 
 typedef std::complex<double> comdouble;
 
-bool isHann = true;
-
 // Signal Processing
 void mergeChannels(short* data, short* out, int datacount, int channels);
 void fft(comdouble* in, comdouble* out, int N, int s);
@@ -33,7 +31,7 @@ const int tysize = 3;
 const char typelist[3] = {'P','G','V'};
 std::vector<std::pair<char, std::array<double, VECSIZE> > > dlist;
 double distance(std::array<double, VECSIZE>& a, std::array<double, VECSIZE>& b);
-char querry(std::array<double, VECSIZE>& ds);
+char querry(std::array<double, VECSIZE>& ds, SICONFIG& config);
 void train(std::pair<char, std::array<double, VECSIZE> > ds);
 
 // Input and Output
@@ -42,8 +40,9 @@ void saveTS(FILE* file);
 void loadTS(FILE* file);
 void writeCSV(FILE* file, comdouble* input, int N, double scaleX);
 
-SF_INFO processSound(char fileName[], double output[]);
+bool processSound(const char* fileName, double output[], SF_INFO& info, SICONFIG config);
 void printInvaild();
+bool processArgs(int argc, char* argv[], SICONFIG& config);
 
 int main(int argc, char* argv[]);
 

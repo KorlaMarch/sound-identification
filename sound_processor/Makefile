@@ -3,7 +3,7 @@ CFLAGS=-O3 -std=c++11 -Iinclude -c -Wall
 LDFLAGS=-O2 -std=c++11
 SOURCES=main.cpp windowing.cpp distance.cpp
 OBJECTS=$(addsuffix .o, $(basename ${SOURCES}))
-EXECUTABLE=sound-identification.exe
+EXECUTABLE=.\..\sound-processor.exe
 DLL= lib\libsndfile-1.lib
 #Uncomment the following to enable debugging
 #CFLAGS+=-g -DDEBUG
