@@ -43,6 +43,42 @@ module.exports = function(app){
 		return shuffleArray(filtered).slice(0,n);
 	}
 
+	function specialRandomSound(type,train_noise,test_noise,train_size,test_size){
+		console.log("GET random sound " + type + " : " + train_noise + " " + test_noise + " " + train_size + " " + test_size );
+		var n = train_size + test_size;
+		var num = [];
+		for(var i = 1; i <= n; i++){
+			num.push(i);
+		}
+
+		shuffleArray(num);
+
+		var trainMP = {};
+		var testMP = {};
+
+		sound.prototype.fileList.forEach((element) => {
+			if(element.noise==train_noise&&element.type==type){
+				trainMP[parseInt(element.file.split("-")[1])] = element;
+			}
+		});
+
+		sound.prototype.fileList.forEach((element) => {
+			if(element.noise==test_noise&&element.type==type){
+				testMP[parseInt(element.file.split("-")[1])] = element;
+			}
+		});
+
+		var out = [];
+		for(var i = 0; i < train_size; i++){
+			out.push(trainMP[num[i]]);
+		}
+		for(var i = train_size; i < n; i++){
+			out.push(testMP[num[i]]);
+		}
+
+		return out;
+	}
+
 	app.get("/mixsound",
 		function(req, res){
 			res.render("../views/streamGen.ejs", { "streamName" : "stream_mixsound" , "heading" : "Sound Mixing"} );
@@ -129,31 +165,20 @@ module.exports = function(app){
 			query.test_noise  = parseFloat(query.test_noise);
 			
 			var tc = new testcase(query.testfile,query.testfile,query.testfile);
-			if(query.train_noise==query.test_noise){
-				logger.sum("Generate train&test (equal noise)");
-				var p = getRandomSound('P',query.train_noise,query.train_size+query.test_size);
-				var v = getRandomSound('V',query.train_noise,query.train_size+query.test_size);
-				var g = getRandomSound('G',query.train_noise,query.train_size+query.test_size);
 
-				tc.train = tc.train.concat(p.slice(0,query.train_size));
-				tc.train = tc.train.concat(v.slice(0,query.train_size));
-				tc.train = tc.train.concat(g.slice(0,query.train_size));
+			logger.sum("Generate train&test");
+			var p = specialRandomSound('P',query.train_noise,query.test_noise,query.train_size,query.test_size);
+			var v = specialRandomSound('V',query.train_noise,query.test_noise,query.train_size,query.test_size);
+			var g = specialRandomSound('G',query.train_noise,query.test_noise,query.train_size,query.test_size);
 
-				tc.test = tc.test.concat(p.slice(query.train_size,query.train_size+query.test_size));
-				tc.test = tc.test.concat(v.slice(query.train_size,query.train_size+query.test_size));
-				tc.test = tc.test.concat(g.slice(query.train_size,query.train_size+query.test_size));
+			tc.train = tc.train.concat(p.slice(0,query.train_size));
+			tc.train = tc.train.concat(v.slice(0,query.train_size));
+			tc.train = tc.train.concat(g.slice(0,query.train_size));
 
-			}else{
-				logger.sum("Generate train...");
-				tc.train = tc.train.concat(getRandomSound('P',query.train_noise,query.train_size));
-				tc.train = tc.train.concat(getRandomSound('V',query.train_noise,query.train_size));
-				tc.train = tc.train.concat(getRandomSound('G',query.train_noise,query.train_size));
+			tc.test = tc.test.concat(p.slice(query.train_size,query.train_size+query.test_size));
+			tc.test = tc.test.concat(v.slice(query.train_size,query.train_size+query.test_size));
+			tc.test = tc.test.concat(g.slice(query.train_size,query.train_size+query.test_size));
 
-				logger.sum("Generate test...");
-				tc.test = tc.test.concat(getRandomSound('P',query.test_noise,query.test_size));
-				tc.test = tc.test.concat(getRandomSound('V',query.test_noise,query.test_size));
-				tc.test = tc.test.concat(getRandomSound('G',query.test_noise,query.test_size));	
-			}
 			logger.sum("Train:");
 			for(var i = 0; i < tc.train.length; i++){
 				logger.sum(tc.train[i].id);
