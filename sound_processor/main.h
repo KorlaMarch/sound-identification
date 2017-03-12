@@ -5,7 +5,6 @@
 #include "iostream"
 #include "fstream"
 #include "include/sndfile.h"
-#include "conio.h"
 #include "math.h"
 #include "stdio.h"
 #include "stdlib.h"

@@ -31,7 +31,7 @@ function addTSList(file, mtype, res, parameter){
 		outFile = path.join(__dirname,"/../../output/" + file + i + ".csv");
 		logstream(res,"ADD " + file + i + ".wav");
 		try{
-			var stdout = child_process.execFileSync(path.join(__dirname,"/../../sound-identification.exe"), 
+			var stdout = child_process.execFileSync(path.join(__dirname,"/../../sound-processor.exe"), 
 				[inFile,"-f","ts.bin","-t",mtype].concat(parameter), [] );
 			if(Buffer.isBuffer(stdout) ){
 				stdout = decoder.write(stdout);
@@ -57,7 +57,7 @@ function testList(file, mtype, res, testResult, parameter){
 		outFile = path.join(__dirname,"/../../output/" + file + i + ".csv");
 		logstream(res,"Test " + file + i + ".wav");
 		try{
-			var stdout = child_process.execFileSync(path.join(__dirname,"/../../sound-identification.exe"), 
+			var stdout = child_process.execFileSync(path.join(__dirname,"/../../sound-processor.exe"), 
 				[inFile,"-f","ts.bin"].concat(parameter), [] );
 			if(Buffer.isBuffer(stdout) ){
 				//encoding stdout
@@ -185,7 +185,7 @@ module.exports = function(app) {
 			const inFile = path.join(__dirname,"/../../sample/" + req.query.file + ".wav");
 			const outFile = path.join(__dirname,"/../../output/" + req.query.file + ".csv");
 			console.log("EXEC " + inFile + " " + outFile);
-			child_process.execFile(path.join(__dirname,"/../../sound-identification.exe"), 
+			child_process.execFile(path.join(__dirname,"/../../sound-processor.exe"), 
 				[inFile,"-f","ts.bin","-e",outFile], [], 
 				function(error, stdout, stderr) {
 					if(stdout) console.log("RUN\n" + stdout);

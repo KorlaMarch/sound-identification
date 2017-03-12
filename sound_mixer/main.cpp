@@ -14,11 +14,12 @@ void printInfo(SF_INFO info){
 void printInvaild(){
     printf("Invaild argument\n");
     printf("Usage : sound-mixer [first-sound] [second-sound] [output-sound] [-p factor]\n");
-    printf("\t-p factor\t: factor is a number between 0.0-1.0 specific the fector that will multiply to a and b\n");
-    printf("\t\ta will multiply by factor and b will multiply by 1-factor (default is 0.5)\n");
+    printf("\t-p factor : factor is a number between 0.0-1.0 specific the fector that will multiply to a and b\n");
+    printf("\ta will multiply by factor and b will multiply by 1-factor (default is 0.5)\n");
 }
 
 void seek(SNDFILE* file, SF_INFO info, int n){
+    printf("SEEK for %d\n",n);
     if(info.seekable) sf_seek(file,n,SEEK_SET);
     else{
         std::vector<double> buffer(BUFFER);
@@ -61,12 +62,14 @@ bool processSound(const char* fileA, const char* fileB, const char* outfile){
     if(infoA.frames<infoB.frames){
         minframe = infoA.frames;
         //random seek B
-        int seekNum = rand()%(infoB.frames-infoA.frames+1);
+        printf("Rand max:%I64d %d\n",infoB.frames-infoA.frames+1,RAND_MAX);
+        int seekNum = ((rand()%32768)*(long long int)(rand()%32768))%(infoB.frames-infoA.frames+1);
         seek(inb,infoB,seekNum);
     }else{
         minframe = infoB.frames;
         //random seek A
-        int seekNum = rand()%(infoA.frames-infoB.frames+1);
+        printf("Rand max:%I64d %d\n",infoA.frames-infoB.frames+1,RAND_MAX);
+        int seekNum = ((rand()%32768)*(long long int)(rand()%32768))%(infoA.frames-infoB.frames+1);
         seek(ina,infoA,seekNum);
     }
 
@@ -108,15 +111,10 @@ bool processArgs(int argc, char* argv[]){
         outfile = std::string(argv[3]);
         factor = 0.5;
 
-        if(strcmp(argv[4],"-p")==0){
-            if(5>=argc){
+        if(argc==6&&strcmp(argv[4],"-p")==0){
+            if(!sscanf(argv[5]," %lf", &factor)){
                 printInvaild();
                 return false;
-            }else{
-                if(!sscanf(argv[5]," %lf", &factor)){
-                    printInvaild();
-                    return false;
-                }
             }
         }else{
             printInvaild();

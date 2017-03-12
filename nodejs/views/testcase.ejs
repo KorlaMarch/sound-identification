@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title><%= heading %></title>
+  <meta charset="UTF-8" />
+  <script>
+    window.addEventListener("load", function() {
+      var button = document.getElementById("connect");
+      var status = document.getElementById("status");
+      var output = document.getElementById("output");
+      var summary = document.getElementById("summary");
+
+      var testfile = document.getElementById("testfile");
+      var train_size = document.getElementById("train_size");
+      var train_noise = document.getElementById("train_noise");
+      var test_size = document.getElementById("test_size");
+      var test_noise = document.getElementById("test_noise");
+
+      var source;
+
+      function encodeReq(){
+        return "?testfile=" + testfile.value + "&train_size=" + train_size.value + "&train_noise=" + train_noise.value
+          + "&test_size=" + test_size.value + "&test_noise=" + test_noise.value;
+      }
+
+      function connect() {
+        var limit = 10000;
+        source = new EventSource("<%= streamName %>" + encodeReq());
+
+        source.addEventListener("info", function(event) {
+          output.innerHTML += event.data;
+          console.log(output.innerHTML.length);
+          if(output.innerHTML.length>limit){
+            output.innerHTML = output.innerHTML.slice(output.innerHTML.length-limit,output.innerHTML.length);
+          }
+          output.scrollTop = output.scrollHeight;
+        }, false);
+
+        source.addEventListener("summary", function(e) {
+          summary.innerHTML += event.data;
+          if(summary.innerHTML.length>limit){
+            summary.innerHTML = summary.innerHTML.slice(summary.innerHTML.length-limit,summary.innerHTML.length);
+          }
+          summary.scrollTop = summary.scrollHeight;
+        }, false);
+
+        source.addEventListener("clear", function(event) {
+          output.innerHTML = "";
+        }, false);
+
+
+        source.addEventListener("open", function(event) {
+          button.value = "Disconnect";
+          output.innerHTML = "";
+          summary.innerHTML = "";
+          button.onclick = function(event) {
+            source.close();
+            button.value = "Connect";
+            button.onclick = connect;
+            status.textContent = "Connection closed!";
+          };
+          status.textContent = "Connection open!";
+        }, false);
+
+        source.addEventListener("error", function(event) {
+          source.close();
+          button.value = "Connect";
+          button.onclick = connect;
+          status.textContent = "Connection closed!";
+        }, false);
+      }
+
+      if (!!window.EventSource) {
+        button.onclick = connect;
+      } else {
+        button.style.display = "none";
+        status.textContent = "Sorry, your browser doesn't support server-sent events :( ";
+      }
+    }, false);
+  </script>
+  <style>
+    .console{
+      overflow: auto;
+      height: 100%;
+    }
+  </style>
+</head>
+<body style="margin:0; height:100vh; width:100vw;">
+  <div style="height:20vh;">
+    <div style="padding: 20px 0px 0px 20px;">
+       Filename: <input type="text" id="testfile" /><br />
+       Train : Size = <input type="number" id="train_size" /> Noise : <input type="number" id="train_noise" /><br />
+       Test : Size = <input type="number" id="test_size" /> Noise : <input type="number" id="test_noise" /><br />
+      <input type="button" id="connect" value="Connect" /><br />
+      <span id="status">Connection closed!</span><br />
+    </div>
+  </div>
+  <div style="width: 100vw; height:80vh;">
+    <div class="console" style="float:left; width: 40%; background-color: #0F0F0F" id="output" ></div>
+    <div class="console" style="float:right; width: 60%; background-color: #202020" id="summary"></div>
+  </div>
+</body>
+</html>
