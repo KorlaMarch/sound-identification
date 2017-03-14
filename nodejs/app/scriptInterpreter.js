@@ -27,7 +27,7 @@ module.exports = function(logger){
 				logger.warn("No old ts.bin was found");
 				callback();
 			}else{
-				logger.info("Remove old ts.bin");
+				logger.sum("Remove old ts.bin");
 				fs.unlink(config.knnDB_file,callback);
 			}
 		});
@@ -53,15 +53,17 @@ module.exports = function(logger){
 		group.load(com.file, ()=>{
 			//make new script
 			var newscript = new soundScript();
-			newscript.push(new command(commandType.Clear,false));
-			//add train
-			group.train.forEach( (element) => {
-				var x = new command(commandType.Run,false);
-				x.file = element.file;
-				x.args = com.args.concat(["-t",element.type]);
-				x.expect = element.type;
-				newscript.push(x);
-			});
+			if(com.isClean){
+				newscript.push(new command(commandType.Clear,false));
+				//add train
+				group.train.forEach( (element) => {
+					var x = new command(commandType.Run,false);
+					x.file = element.file;
+					x.args = com.args.concat(["-t",element.type]);
+					x.expect = element.type;
+					newscript.push(x);
+				});
+			}
 
 			//add test
 			group.test.forEach( (element) => {

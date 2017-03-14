@@ -59,11 +59,7 @@ module.exports = function execResult(name, id, file){
 	};
 
 	this.push = function(res){
-		if(res instanceof result){
-			this.resultList.push(res);
-		}else{
-			logger.error("push called with non-result parameter.");
-		}
+		this.resultList.push(res);
 	};
 
 };

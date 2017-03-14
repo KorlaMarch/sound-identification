@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title><%= heading %></title>
+  <meta charset="UTF-8" />
+  <script>
+    window.addEventListener("load", function() {
+      var button = document.getElementById("connect");
+      var status = document.getElementById("status");
+      var output = document.getElementById("output");
+      var resultlist = document.getElementById("resultlist");
+      var source;
+
+      function connect() {
+        var limit = 10000;
+        
+        source = new EventSource("<%= streamName %>" + "?file=" + resultlist.options[resultlist.selectedIndex].value);
+
+        source.addEventListener("info", function(event) {
+          output.innerHTML += event.data;
+          console.log(output.innerHTML.length);
+          output.scrollTop = output.scrollHeight;
+        }, false);
+
+        source.addEventListener("clear", function(event) {
+          output.innerHTML = "";
+        }, false);
+
+
+        source.addEventListener("open", function(event) {
+          output.innerHTML = "";
+          summary.innerHTML = "";
+          button.onclick = function(event) {
+            source.close();
+            button.onclick = connect;
+            status.textContent = "Connection closed!";
+          };
+          status.textContent = "Connection open!";
+        }, false);
+
+        source.addEventListener("error", function(event) {
+          source.close();
+          button.onclick = connect;
+          status.textContent = "Connection closed!";
+        }, false);
+      }
+
+      if (!!window.EventSource) {
+        button.onclick = connect;
+      } else {
+        button.style.display = "none";
+        status.textContent = "Sorry, your browser doesn't support server-sent events :( ";
+      }
+    }, false);
+  </script>
+  <style>
+    .console{
+      overflow: auto;
+      height: 100%;
+      padding: 20px
+    }
+
+    table, th, td {
+      border: 2px solid #ffa782;
+      color: #ffffff;
+      border-collapse: collapse;
+    }
+    th, td {
+        padding: 5px;
+    }
+  </style>
+</head>
+<body style="margin:0; height:100vh; width:100vw;">
+  <div style="height:20vh;">
+    <div style="padding: 20px 0px 0px 20px;">
+      Script File : <select id="resultlist">
+          <% for(var i = 0; i < resultList.length; i++){ %>
+            <option value="<%= resultList[i].file %>"><%= resultList[i].name %></option>
+          <% } %> 
+      </select>
+      <input type="button" id="connect" value="View" /><br />
+      <span id="status">Connection closed!</span><br />
+    </div>
+  </div>
+  <div style="width: 100vw;">
+    <div class="console" style="float:left; width: 100%; background-color: #202020" id="output" ></div>
+  </div>
+</body>
+</html>

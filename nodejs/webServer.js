@@ -43,6 +43,7 @@ require("routes.js")(app);
 require("testcaseGenerator.js")(app);
 require("scriptGenerator.js")(app);
 require("interpreterPage.js")(app);
+require("resultAnalysis.js")(app);
 
 app.listen(port);
 console.log("Server start on port " + port);

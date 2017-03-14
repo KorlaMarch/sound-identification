@@ -78,5 +78,7 @@ module.exports = function(logstream){
 		module.log(Color.debug(text),Level.debug);
 	};
 
+	module.level = Level;
+
 	return module;
 }

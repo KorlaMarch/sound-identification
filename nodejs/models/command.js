@@ -19,6 +19,7 @@ function command(type,isTest){
 	}else if(type==command.prototype.commandType.GroupRun){
 		this.file = "";
 		this.args = [];
+		this.isClean = true;
 	}else if(type==command.prototype.commandType.MixSound){
 		this.fileA = "";
 		this.fileB = "";

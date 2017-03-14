@@ -36,6 +36,8 @@ module.exports = function(app){
 					var comm = new command(command.prototype.commandType.GroupRun,true);
 					comm.file = req.query.testcase;
 					comm.args = ["-f",config.knnDB_file,"-w",windows[i],"-d",distance[j],"-k",kcon[k].toString(),"-nb"];
+					if(k==0) comm.isClean = true;
+					else comm.isClean = false;
 					logger.info("add " + comm.args);
 					script.push(comm);
 				}
