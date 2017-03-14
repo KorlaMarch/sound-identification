@@ -3,6 +3,9 @@
 *.sodb
 
 unused_sound/
+nodejs/testcase/sound/*.wav
+log.txt
+ts.bin
 
 # Compiled Object files
 *.slo
