@@ -1,0 +1,180 @@
+Result of windows: R distance: E kcon: 1
+All: 45 Pass: 28 Accuracy: 62.222%
+Result of windows: R distance: E kcon: 2
+All: 45 Pass: 20 Accuracy: 44.444%
+Result of windows: R distance: E kcon: 3
+All: 45 Pass: 22 Accuracy: 48.889%
+Result of windows: R distance: E kcon: 4
+All: 45 Pass: 16 Accuracy: 35.556%
+Result of windows: R distance: E kcon: 5
+All: 45 Pass: 17 Accuracy: 37.778%
+Result of windows: R distance: M kcon: 1
+All: 45 Pass: 29 Accuracy: 64.444%
+Result of windows: R distance: M kcon: 2
+All: 45 Pass: 19 Accuracy: 42.222%
+Result of windows: R distance: M kcon: 3
+All: 45 Pass: 23 Accuracy: 51.111%
+Result of windows: R distance: M kcon: 4
+All: 45 Pass: 18 Accuracy: 40.000%
+Result of windows: R distance: M kcon: 5
+All: 45 Pass: 22 Accuracy: 48.889%
+Result of windows: R distance: C kcon: 1
+All: 45 Pass: 5 Accuracy: 11.111%
+Result of windows: R distance: C kcon: 2
+All: 45 Pass: 1 Accuracy: 2.222%
+Result of windows: R distance: C kcon: 3
+All: 45 Pass: 6 Accuracy: 13.333%
+Result of windows: R distance: C kcon: 4
+All: 45 Pass: 4 Accuracy: 8.889%
+Result of windows: R distance: C kcon: 5
+All: 45 Pass: 5 Accuracy: 11.111%
+Result of windows: T distance: E kcon: 1
+All: 45 Pass: 33 Accuracy: 73.333%
+Result of windows: T distance: E kcon: 2
+All: 45 Pass: 23 Accuracy: 51.111%
+Result of windows: T distance: E kcon: 3
+All: 45 Pass: 29 Accuracy: 64.444%
+Result of windows: T distance: E kcon: 4
+All: 45 Pass: 21 Accuracy: 46.667%
+Result of windows: T distance: E kcon: 5
+All: 45 Pass: 26 Accuracy: 57.778%
+Result of windows: T distance: M kcon: 1
+All: 45 Pass: 35 Accuracy: 77.778%
+Result of windows: T distance: M kcon: 2
+All: 45 Pass: 30 Accuracy: 66.667%
+Result of windows: T distance: M kcon: 3
+All: 45 Pass: 30 Accuracy: 66.667%
+Result of windows: T distance: M kcon: 4
+All: 45 Pass: 25 Accuracy: 55.556%
+Result of windows: T distance: M kcon: 5
+All: 45 Pass: 26 Accuracy: 57.778%
+Result of windows: T distance: C kcon: 1
+All: 45 Pass: 15 Accuracy: 33.333%
+Result of windows: T distance: C kcon: 2
+All: 45 Pass: 14 Accuracy: 31.111%
+Result of windows: T distance: C kcon: 3
+All: 45 Pass: 15 Accuracy: 33.333%
+Result of windows: T distance: C kcon: 4
+All: 45 Pass: 15 Accuracy: 33.333%
+Result of windows: T distance: C kcon: 5
+All: 45 Pass: 15 Accuracy: 33.333%
+Result of windows: H distance: E kcon: 1
+All: 45 Pass: 33 Accuracy: 73.333%
+Result of windows: H distance: E kcon: 2
+All: 45 Pass: 23 Accuracy: 51.111%
+Result of windows: H distance: E kcon: 3
+All: 45 Pass: 30 Accuracy: 66.667%
+Result of windows: H distance: E kcon: 4
+All: 45 Pass: 21 Accuracy: 46.667%
+Result of windows: H distance: E kcon: 5
+All: 45 Pass: 26 Accuracy: 57.778%
+Result of windows: H distance: M kcon: 1
+All: 45 Pass: 35 Accuracy: 77.778%
+Result of windows: H distance: M kcon: 2
+All: 45 Pass: 29 Accuracy: 64.444%
+Result of windows: H distance: M kcon: 3
+All: 45 Pass: 29 Accuracy: 64.444%
+Result of windows: H distance: M kcon: 4
+All: 45 Pass: 25 Accuracy: 55.556%
+Result of windows: H distance: M kcon: 5
+All: 45 Pass: 25 Accuracy: 55.556%
+Result of windows: H distance: C kcon: 1
+All: 45 Pass: 15 Accuracy: 33.333%
+Result of windows: H distance: C kcon: 2
+All: 45 Pass: 14 Accuracy: 31.111%
+Result of windows: H distance: C kcon: 3
+All: 45 Pass: 15 Accuracy: 33.333%
+Result of windows: H distance: C kcon: 4
+All: 45 Pass: 15 Accuracy: 33.333%
+Result of windows: H distance: C kcon: 5
+All: 45 Pass: 15 Accuracy: 33.333%
+Result of windows: M distance: E kcon: 1
+All: 45 Pass: 33 Accuracy: 73.333%
+Result of windows: M distance: E kcon: 2
+All: 45 Pass: 23 Accuracy: 51.111%
+Result of windows: M distance: E kcon: 3
+All: 45 Pass: 29 Accuracy: 64.444%
+Result of windows: M distance: E kcon: 4
+All: 45 Pass: 21 Accuracy: 46.667%
+Result of windows: M distance: E kcon: 5
+All: 45 Pass: 26 Accuracy: 57.778%
+Result of windows: M distance: M kcon: 1
+All: 45 Pass: 35 Accuracy: 77.778%
+Result of windows: M distance: M kcon: 2
+All: 45 Pass: 29 Accuracy: 64.444%
+Result of windows: M distance: M kcon: 3
+All: 45 Pass: 29 Accuracy: 64.444%
+Result of windows: M distance: M kcon: 4
+All: 45 Pass: 25 Accuracy: 55.556%
+Result of windows: M distance: M kcon: 5
+All: 45 Pass: 26 Accuracy: 57.778%
+Result of windows: M distance: C kcon: 1
+All: 45 Pass: 15 Accuracy: 33.333%
+Result of windows: M distance: C kcon: 2
+All: 45 Pass: 13 Accuracy: 28.889%
+Result of windows: M distance: C kcon: 3
+All: 45 Pass: 15 Accuracy: 33.333%
+Result of windows: M distance: C kcon: 4
+All: 45 Pass: 14 Accuracy: 31.111%
+Result of windows: M distance: C kcon: 5
+All: 45 Pass: 15 Accuracy: 33.333%
+Result of windows: B distance: E kcon: 1
+All: 45 Pass: 32 Accuracy: 71.111%
+Result of windows: B distance: E kcon: 2
+All: 45 Pass: 21 Accuracy: 46.667%
+Result of windows: B distance: E kcon: 3
+All: 45 Pass: 30 Accuracy: 66.667%
+Result of windows: B distance: E kcon: 4
+All: 45 Pass: 21 Accuracy: 46.667%
+Result of windows: B distance: E kcon: 5
+All: 45 Pass: 26 Accuracy: 57.778%
+Result of windows: B distance: M kcon: 1
+All: 45 Pass: 35 Accuracy: 77.778%
+Result of windows: B distance: M kcon: 2
+All: 45 Pass: 29 Accuracy: 64.444%
+Result of windows: B distance: M kcon: 3
+All: 45 Pass: 29 Accuracy: 64.444%
+Result of windows: B distance: M kcon: 4
+All: 45 Pass: 25 Accuracy: 55.556%
+Result of windows: B distance: M kcon: 5
+All: 45 Pass: 25 Accuracy: 55.556%
+Result of windows: B distance: C kcon: 1
+All: 45 Pass: 15 Accuracy: 33.333%
+Result of windows: B distance: C kcon: 2
+All: 45 Pass: 14 Accuracy: 31.111%
+Result of windows: B distance: C kcon: 3
+All: 45 Pass: 15 Accuracy: 33.333%
+Result of windows: B distance: C kcon: 4
+All: 45 Pass: 15 Accuracy: 33.333%
+Result of windows: B distance: C kcon: 5
+All: 45 Pass: 15 Accuracy: 33.333%
+Result of windows: F distance: E kcon: 1
+All: 45 Pass: 29 Accuracy: 64.444%
+Result of windows: F distance: E kcon: 2
+All: 45 Pass: 19 Accuracy: 42.222%
+Result of windows: F distance: E kcon: 3
+All: 45 Pass: 29 Accuracy: 64.444%
+Result of windows: F distance: E kcon: 4
+All: 45 Pass: 25 Accuracy: 55.556%
+Result of windows: F distance: E kcon: 5
+All: 45 Pass: 26 Accuracy: 57.778%
+Result of windows: F distance: M kcon: 1
+All: 45 Pass: 37 Accuracy: 82.222%
+Result of windows: F distance: M kcon: 2
+All: 45 Pass: 29 Accuracy: 64.444%
+Result of windows: F distance: M kcon: 3
+All: 45 Pass: 31 Accuracy: 68.889%
+Result of windows: F distance: M kcon: 4
+All: 45 Pass: 27 Accuracy: 60.000%
+Result of windows: F distance: M kcon: 5
+All: 45 Pass: 27 Accuracy: 60.000%
+Result of windows: F distance: C kcon: 1
+All: 45 Pass: 15 Accuracy: 33.333%
+Result of windows: F distance: C kcon: 2
+All: 45 Pass: 15 Accuracy: 33.333%
+Result of windows: F distance: C kcon: 3
+All: 45 Pass: 15 Accuracy: 33.333%
+Result of windows: F distance: C kcon: 4
+All: 45 Pass: 15 Accuracy: 33.333%
+Result of windows: F distance: C kcon: 5
+All: 45 Pass: 15 Accuracy: 33.333%

@@ -82,3 +82,4 @@ module.exports = function(logstream){
 
 	return module;
 }
+

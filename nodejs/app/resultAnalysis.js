@@ -115,4 +115,62 @@ module.exports = function(app){
 
 	});
 
+	app.get("/sum", function(req, res){
+		res.render("../views/analysis.ejs",{
+			"streamName" : "stream_sum",
+			"heading" : "Super sum",
+			"resultList" : execResult.prototype.fileList
+		} );
+	});
+
+	app.get("/stream_sum", function(req, res){	
+		res.writeHead(200, {"Content-Type":"text/event-stream", "Cache-Control":"no-cache", "Connection":"keep-alive"});
+		
+		var logger = Log(res);
+		var rsfile = new execResult();
+		
+		var matrix = [
+					[0,0,0],
+					[0,0,0],
+					[0,0,0]];
+		var arr = [];
+		var sumec = 0;
+
+		rsfile.load(req.query.file, ()=>{
+			logger.sum("Show " + rsfile.name);
+			rsfile.resultList.forEach( (element)=>{
+				var correct=0, ec = 0, all=0;
+				
+				//logger.warn("Args = " + element.args.slice(2,element.args.length));
+				for(var i = 0; i < element.expect.length; i++){
+					if(element.predict[i]=='E'){
+						ec++;
+						sumec++;
+					}else{
+						matrix[instrument[element.expect[i]]][instrument[element.predict[i]]]++;
+					}
+					all++;
+					if(element.expect[i]==element.predict[i]) correct++;
+				}
+				arr.push(correct);
+			});
+			//print table
+			var text = "<table>";
+			for(var i = 0; i < arr.length; i += 5){
+				text += "<tr>";
+				for(var j = 0; j < 5; j++){
+					text += "<th>" + (100.0*arr[i+j]/300).toFixed(2) + "</th>";
+				}
+				text += "</tr>";
+			}
+			text += "</table>";
+			logger.log(text,logger.level.sum);
+			printTable(matrix,logger);
+			logger.sum("EC : " + sumec);
+			logger.sum("Done");
+			res.end();
+		});
+
+	});
+
 }
